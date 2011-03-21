@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang='en'>
+  <head>
+    <title>Uploadify Test Page</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!-- link href="css/uploadify.css" rel="stylesheet" type="text/css" / -->
+  </head>
+  <body>
+    <p>Current upload path: <span id="upload_path"></span></p>
+    <table id="console">
+      <caption>Upload files</caption>
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Status</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <div id="uploadify">正在初始化上传组件，请稍后...</div>
+    <p><a href="#">Cancel All Uploads</a></p>
+    <!-- page content ends -->
+    <!-- scripts start from here -->
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2/swfobject.js"></script>
+    <script type="text/javascript" src="scripts/jquery.uploadify.v2.1.0.min.js"></script>
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+      var upload_url = [
+        "http://assets1.image.51hejia.com:8882/",
+        "http://assets2.image.51hejia.com:8882/",
+        "http://assets3.image.51hejia.com:8882/"
+      ][Math.round(Math.random() * 3)];
+
+      upload_url = "http://assets2.image.51hejia.com:8882/";
+      upload_url = "http://upload.image.51hejia.com:8882/";
+
+      function file_item(id) {
+        var tr_id = 'f' + id;
+        var item = $('#' + tr_id);
+        if (item.size() < 1) {
+          item = $('<tr/>').attr('id', tr_id).appendTo('#console tbody');
+          for(var i = 0; i < 3; i++) $('<td/>').appendTo(item);
+        }
+        return item;
+      }
+
+      function uploadErrorHandler(event, id, file, error) {
+        file_item(id).find('td').eq(1).text(error.type).end().eq(2).text(error.info);
+
+        return false;
+      }
+
+      function uploadSuccessHandler(event, id, file, response, data) {
+        var ext = file.name.split('.');
+        if( ext.length > 1 ) ext = ext[ext.length - 1];
+        else ext = null;
+        if( typeof ActiveXObject != 'undefined' ) {
+          var doc = new ActiveXObject('MSXML2.DOMDocument');
+          doc.loadXML(response);
+          response = doc;
+        }
+        var src = upload_url + $(response).find('id').text() + '-' + $(response).find('md5').text();
+        if( ext ) src = src + '.' + ext;
+        file_item(id).find('td').eq(1).text('SUCCESS').end().eq(2).
+          html('<img src="' + src + '" />');
+      }
+
+      function uploadProgressHandler(event, id, file, data) {
+        file_item(id).find('td').eq(2).text(data.percentage + '%(' + data.speed + ')');
+      }
+
+      function fileQueuedHandler(event, id, file) {
+        file_item(id).find('td').eq(0).text(file.name).end().
+         eq(1).text('QUEUED');
+
+        return false;
+      }
+
+      function onCancel() { return false }
+
+      function log(msg) {
+        if(console) console.log(msg);
+      }
+
+      $("#uploadify").uploadify({
+        auto        : true, // 自动开始上传文件
+        // 路径
+        script         : upload_url, // 处理上传的地址
+        uploader       : 'swf/uploadify.swf', // 上传文件falsh
+        expressInstall : 'swf/expressInstall.swf',
+        cancelImg      : 'img/cancel.png', // 取消上传的按钮图片
+
+        //scriptData: {watermark: '4c05fde35c5175274b000001', resize: '500x375'},
+        //scriptData: {watermark: '4c060a2d86869711c20004bb', resize: '500x375'},
+
+        fileDataName: 'file', // 文件在POST中的参数名字
+
+        fileDesc    : 'Image files', // 可选文件的描述
+        fileExt     : '*.jpg;*.png;*.gif', // 可选文件的扩展名
+
+        queueID     : 'fileQueue', // 文件列表的dom id
+
+        sizeLimit   : 500 * 1024, // 上传文件的大小控制（字节，这里表示500Kb）
+        multi       : true, // 允许上传多个文件
+        simUploadLimit : 1, // 允许同时进行上传的文件数
+
+        //buttonText  : '上传', // 上传按钮的文字
+        buttonImg   : 'img/upload.png', // 上传按钮图片
+        rollover    : true, // 是否使用sprint图片（一张图片多张小图）－没有swfupload流畅
+        width       : 61,
+        height      : 22,
+
+        // 选择了文件时
+        onSelect: fileQueuedHandler,
+        // 单个文件上传成功的处理函数
+        onComplete: uploadSuccessHandler,
+        // 文件上传失败的处理函数
+        onError:    uploadErrorHandler,
+        // 处理文件上传进度的函数
+        onProgress: uploadProgressHandler
+      });
+
+      $('#clean_queue').click(function(event) {
+        event.preventDefault();
+        $('#uploadify').uploadifyClearQueue()
+        return false;
+      });
+
+      $('#upload_path').text(upload_url);
+    });
+    </script>
+  </body>
+</html>

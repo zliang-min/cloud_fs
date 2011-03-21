@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang='en'>
+  <head>
+    <title>SWFUpload Test Page</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style type="text/css">
+      #console { border: solid 1px blue; }
+      #console p { margin: 0 0 10px; padding: 0; border-bottom: dash 1px red; }
+      .swfupload { height: 22px; width: 61px; background-image: url(img/upload.png); }
+    </style>
+  </head>
+  <body>
+    <div id="swfupload_button">
+      <noscript>You have to enable javascript to upload files.</noscript>
+    </div>
+    <table id="console">
+      <caption>Upload files</caption>
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Status</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <!-- page content ends -->
+    <!-- scripts start from here -->
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script type="text/javascript" src="scripts/swfupload.js"></script>
+    <script type="text/javascript">
+      var swfu;
+
+      $(document).ready(function() {
+        var upload_url = [
+          "http://assets1.image.51hejia.com:4000/",
+          "http://assets2.image.51hejia.com:4000/",
+          "http://assets3.image.51hejia.com:4000/"
+        ][Math.round(Math.random() * 3)];
+
+        //upload_url = "http://112.65.249.204:81/"
+        //upload_url = "htpp://192.168.0.15:8081/";
+
+        function file_item(file) {
+          var tr_id = 'f' + file.id;
+          var item = $('#' + tr_id);
+          if (item.size() < 1) {
+            item = $('<tr/>').attr('id', tr_id).appendTo('#console tbody');
+            for(var i = 0; i < 3; i++) $('<td/>').appendTo(item);
+          }
+          return item;
+        }
+
+        function uploadErrorHandler(file, code, message) {
+          file_item(file).find('td').eq(1).text('ERROR').end().
+            eq(2).text(SWFUpload.UPLOAD_ERROR[code] + "\n" + message);
+        }
+
+        function uploadSuccessHandler(file, data, response) {
+          var ext = file.name.split('.');
+          ext = ext[ext.length - 1];
+          file_item(file).find('td').eq(1).text('SUCCESS').end().eq(2).
+            html('<img src="' + upload_url +
+              $(data).find('id').text() + '-' +
+              $(data).find('md5').text() + '.' +
+              ext + '" />');
+        }
+
+        function uploadStartHandler(file) {
+          file_item(file).find('td').eq(1).text('UPLOADING').end().eq(2).text('0%');
+        }
+
+        function uploadProgressHandler(file, uploaded, total) {
+          file_item(file).find('td').eq(2).text(Math.round(uploaded / total) + '%');
+        }
+
+        function swfuploadPreloadHandler() {
+          $('#swfupload_button').text('Upload component is loading, please wait ...');
+        }
+
+        function fileQueuedHandler(file) {
+          file_item(file).find('td').eq(0).text(file.name).end().
+           eq(1).text('QUEUED');
+          this.startUpload(file.id);
+        }
+
+        swfu = new SWFUpload({
+          debug: true,
+
+          upload_url : upload_url,
+          flash_url  : "swf/swfupload.swf",
+          flash9_url : "swf/swfupload_fp9.swf",
+          file_post_name  : 'file',
+          file_size_limit : "1 MB",
+          file_types      : '*.jpg;*.png;*.gif',
+          file_types_description: 'Image files',
+          assume_success_timeout: 0,
+          http_success    : [201, 204],
+
+          button_placeholder_id : 'swfupload_button',
+          button_image_url      : 'img/upload.png',
+          // button_text: 'Upload',
+          /* handlers */
+          swfupload_preload_handler : swfuploadPreloadHandler,
+          file_queued_handler     : fileQueuedHandler,
+          upload_start_handler    : uploadStartHandler,
+          upload_progress_handler : uploadProgressHandler,
+          upload_error_handler    : uploadErrorHandler,
+          upload_success_handler  : uploadSuccessHandler
+        });
+      });
+
+      $(document).unload(function() {
+        /* Prevent memory leaks in IE */
+        try { swfu.destroy() } catch(e) { /* noop */ }
+      });
+    </script>
+  </body>
+</html>

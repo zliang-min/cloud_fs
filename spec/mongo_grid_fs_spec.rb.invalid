@@ -1,0 +1,28 @@
+# -- encoding: utf-8 --
+
+#require_relative 'helper'
+#require File.join(File.dirname(__FILE__), 'helper')
+require 'helper'
+
+describe CloudFS::Backend::MongoGridFS do
+
+  include AssetsHelper
+
+  def fs
+    @fs ||= CloudFS::Backend::MongoGridFS.new
+  end
+
+  context '当保存文件后' do
+    before(:all) { @id = File.open(empty_gif, 'r') { |f| fs.save f }; puts "\nSave #{@id}"; }
+    after(:all)  { puts "\nDelete #{@id}"; fs.delete @id }
+
+    it '返回有效的BSON ObjectId.' do
+      lambda { BSON::ObjectId.from_string @id }.should_not raise_exception(BSON::InvalidObjectId)
+    end
+
+    context '根据返回的id读取文件' do
+      subject { @file = fs.find(@id) }
+      specify { subject['md5'].should == md5_of_empty_gif }
+    end
+  end
+end

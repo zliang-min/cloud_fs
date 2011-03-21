@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang='en'>
+  <head>
+    <title>YUI2 Uploader Test Page</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  </head>
+  <body>
+    <div id="fileQueue"></div>
+    <input type="file" name="uploadify" id="uploadify" />
+    <!-- page content ends -->
+    <!-- scripts start from here -->
+    <script type="text/javascript" src="http://yui.yahooapis.com/combo?2.8.1/build/yahoo-dom-event/yahoo-dom-event.js&2.8.1/build/element/element-min.js&2.8.1/build/uploader/uploader-min.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+      function log(msg) {
+        if(console) console.log(msg);
+      }
+
+      $("#uploadify").uploadify({
+        auto        : true,
+        cancelImg   : 'img/cancel.png',
+        fileDataName: 'file',
+        fileDesc    : 'Image files',
+        fileExt     : '*.jpg;*.png;*.gif',
+        folder      : 'uploads',
+        multi       : true,
+        queueID     : 'fileQueue',
+        script      : 'http://local.51hejia.com:4000',
+        uploader    : 'swf/uploadify.swf',
+
+        /* */
+        // It will never trigger this event, I don't know why ... orz
+        onComplete: function(event, queueId, fileObj, response, data) {
+          try {
+            log("response: " + response);
+            log(
+              'queueId: ' + queueId + "\n" +
+              'file: ' + fileObj.name + "\n" +
+              'data: ' + data
+            );
+          } catch(e) {
+            log(e.message);
+          }
+          return true;
+        },
+        onError: function(event, queueId, fileObj, errorObj) {
+          log('[ERROR] ' + errorObj.type + ' : ' + errorObj.info);
+          return true;
+        },
+        onOpen: function(event, queueId, fileObj) {
+          log(fileObj.name + ' opened');
+          return true;
+        },
+        onProgress: function(event, queueId, fileObj, data) {
+          log(fileObj.name + ' uploaded ' + data.percentage + '%');
+          return true;
+        }
+      });
+
+      $('#clean_queue').click(function(event) {
+        event.preventDefault();
+        $('#uploadify').uploadifyClearQueue()
+        return false;
+      });
+    });
+    </script>
+  </body>
+</html>

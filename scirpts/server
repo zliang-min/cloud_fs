@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+gem 'bundler', '~> 1.0.7'
+require 'bundler'
+Bundler.setup :default, :run
+
+# TODO determin which server to use.
+if Gem.loaded_specs.has_key?('passenger')
+  require 'phusion_passenger'
+  require 'phusion_passenger/standalone/main'
+
+  if ['start', 'stop', 'status'].include?(ARGV.first) && !ARGV.include?('-h')
+    ARGV.insert 1, File.expand_path('../..', __FILE__)
+    puts "passenger #{ARGV.join ' '}"
+  end
+
+  PhusionPassenger::Standalone::Main.run!(ARGV)
+elsif Gem.loaded_specs.has_key?('rainbows')
+  if ARGV.include?('-h')
+    puts "Usage: #{File.basename $0} [environment]"
+    exit
+  end
+
+  require 'unicorn/launcher'
+  require 'rainbows'
+
+  ENV["RACK_ENV"] ||= ARGV[0] || 'development'
+
+  rackup_opts = Unicorn::Configurator::RACKUP
+  options = rackup_opts[:options]
+
+  options[:config_file]   = File.expand_path("../../config/#{ENV['RACK_ENV']}/rainbows.rb", __FILE__)
+  rackup_opts[:daemonize] = ENV['RACK_ENV'] != 'development'
+
+  app = Unicorn.builder File.expand_path('../../config.ru', __FILE__), nil
+
+  Unicorn::Launcher.daemonize!(options) if rackup_opts[:daemonize]
+  Rainbows.run(app, options)
+else
+  puts "I don't know which server to use!"
+end

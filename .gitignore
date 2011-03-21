@@ -1,0 +1,7 @@
+.svn
+.bundle
+log
+logs
+tmp
+vendor/cache
+Gemfile.lock
