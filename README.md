@@ -13,21 +13,22 @@
 * [rainbows](http://rainbows.rubyforge.org/)是一个ruby的web服务器（类似于thin），经过多次测试，rainbows配合CloudFS的效率是最好的，所以推荐使用。rainbows可以直接使用，不需要跟nginx一起使用（当然要一起也是可以的）。rainbows本身就像是一个nginx + thin，它会启动一个主进程（控制进程，相当于nginx），若干个子进程（工作进程，相当于thin），来运行程序。
 
 ## 安装方法
-1. svn checkout http://svn.51hejia.com/51hejia/repos/cloud_fs/release /var/www/cloud_fs
-2. cd /var/www/cloud_fs
-3. bundle install --local --deployment （bundle是安装了bundler之后附带的脚本）
-4. vim config.rb (修改相关的配置参数）
-5. cp scripts/rainbows.rb /etc/rainbows/cloud_fs.rb （rainbows.rb是一个rainbows的配置样例）
-6. vim /etc/rainbows/cloud_fs.rb （根据实际情况，修改配置）
+1. `git clone git://github.com/Gimi/cloud_fs.git`
+2. `cd /var/www/cloud_fs`
+3. `bundle install --local --deployment` （bundle是安装了bundler之后附带的脚本）
+4. `vim config.rb` (修改相关的配置参数）
+5. `cp scripts/rainbows.rb /etc/rainbows/cloud_fs.rb` （rainbows.rb是一个rainbows的配置样例）
+6. `vim /etc/rainbows/cloud_fs.rb` （根据实际情况，修改配置）
 **注意**
 * 以上路径，均是示范，根据实际情况修改
 
 ## 运行
-* rainbows -D -E production -c /etc/rainbows/cloud_fs.rb /var/www/cloud_fs/config.ru （rainbows是安装了rainbows之后附带的脚本，各参数的意义可通过rainbows -h来获取）
+    $> # rainbows是安装了rainbows之后附带的脚本，各参数的意义可通过rainbows -h来获取
+    $> rainbows -D -E production -c /etc/rainbows/cloud_fs.rb /var/www/cloud_fs/config.ru
 
 ## 更新
 1. 更新程序代码
-2. 执行bundle install
+2. 执行`bundle install`
 3. 重启rainbows
 rainbows对信号的支持非常全面，[详细](http://rainbows.rubyforge.org/SIGNALS.html)。所以重启非常简单，只要在更新了程序的代码之后，执行：
     kill -1 [rainbows的主进程id] 或 kill -s HUP [rainbows的主进程id]
